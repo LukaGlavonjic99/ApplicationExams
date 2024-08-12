@@ -1,7 +1,12 @@
 package com.example.applicationexams.fragments
 
+import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -11,6 +16,9 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.getSystemService
 import androidx.core.view.MenuProvider
 import androidx.navigation.NavController
 import androidx.navigation.Navigation
@@ -38,6 +46,11 @@ class HomeFragment : Fragment(), AddExamPopUpFragment.DialogNextBtnClickListener
     private var popUpFragment: AddExamPopUpFragment?=null
     private lateinit var adapter: ExamAdapter
     private lateinit var mList:MutableList<ExamData>
+    val CHANNEL_ID = "channelID"
+    val CHANNEL_NAME = "channelName"
+    private lateinit var manager: NotificationManager
+    val NOTIFICATION_ID = 0
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,6 +63,12 @@ class HomeFragment : Fragment(), AddExamPopUpFragment.DialogNextBtnClickListener
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        binding.addBtnHome.setOnClickListener {
+            registerEvents()
+        }
+
+
 
         requireActivity().addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -70,7 +89,7 @@ class HomeFragment : Fragment(), AddExamPopUpFragment.DialogNextBtnClickListener
 
         init(view)
         getDataFromFirebase()
-        registerEvents()
+
         loadData()
         binding.saveButton.setOnClickListener {
             saveData()
@@ -143,13 +162,40 @@ class HomeFragment : Fragment(), AddExamPopUpFragment.DialogNextBtnClickListener
         adapter.setListener(this)
         binding.recyclerView.adapter = adapter
 
+        createNotificationChannel()
+
     }
 
+    private fun createNotificationChannel() {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel =
+                NotificationChannel(CHANNEL_ID, CHANNEL_NAME,
+                    NotificationManager.IMPORTANCE_DEFAULT).apply {
+                    lightColor = Color.RED
+                    enableLights(true)
+                }
+            manager =
+                requireContext().getSystemService<NotificationManager>()!!
+            manager.createNotificationChannel(channel)
+        }
+    }
+
+    @SuppressLint("MissingPermission")
     override fun onSaveExam(exam: String, examEt: TextInputEditText) {
         databaseRef.push().setValue(exam).addOnCompleteListener {
             if(it.isSuccessful){
-                Toast.makeText(context, "Exam saved successfully!", Toast.LENGTH_SHORT).show()
-                examEt.text = null
+                val notification =
+                    NotificationCompat.Builder(requireContext(), CHANNEL_ID)
+                        .setContentTitle("Exam notification")
+                        .setContentText("Exam: '${exam}' Was Successfully Added!")
+                        .setSmallIcon(R.drawable.baseline_android_24)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .build()
+                val notificationManager =
+                    NotificationManagerCompat.from(requireContext())
+                notificationManager.notify(NOTIFICATION_ID, notification)
+
+
             } else {
                 Toast.makeText(context, it.exception?.message, Toast.LENGTH_SHORT).show()
             }
