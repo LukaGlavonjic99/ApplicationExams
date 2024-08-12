@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "52145036297",
+    "project_id": "examskotlin",
+    "storage_bucket": "examskotlin.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:52145036297:android:ba991125df3206397e2cd8",
+        "android_client_info": {
+          "package_name": "com.example.applicationexams"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAfgwfFag1C7NQafyQCF43iBOO3tWNMSYI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
